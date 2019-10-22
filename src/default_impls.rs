@@ -15,7 +15,7 @@ use crate::{Context, DeepSizeOf};
 /// known_deep_size!(4, C); // C will always have an allocation of 4 bytes
 /// # }
 /// ```
-/// 
+///
 #[macro_export]
 macro_rules! known_deep_size(
     ($size:expr, $($type:ty),+) => (
@@ -49,7 +49,19 @@ known_deep_size!(
     0,
     core::sync::atomic::AtomicBool,
     core::sync::atomic::AtomicIsize,
-    core::sync::atomic::AtomicUsize
+    core::sync::atomic::AtomicUsize,
+    core::num::NonZeroU8,
+    core::num::NonZeroU16,
+    core::num::NonZeroU32,
+    core::num::NonZeroU64,
+    core::num::NonZeroU128,
+    core::num::NonZeroI8,
+    core::num::NonZeroI16,
+    core::num::NonZeroI32,
+    core::num::NonZeroI64,
+    core::num::NonZeroI128,
+    core::num::NonZeroUsize,
+    core::num::NonZeroIsize
 );
 
 impl<T: ?Sized> DeepSizeOf for core::marker::PhantomData<T> {
@@ -77,12 +89,11 @@ impl<T: DeepSizeOf> DeepSizeOf for core::option::Option<T> {
 impl<R: DeepSizeOf, E: DeepSizeOf> DeepSizeOf for core::result::Result<R, E> {
     fn deep_size_of_children(&self, context: &mut Context) -> usize {
         match &self {
-            Ok(r)  => r.deep_size_of_children(context),
+            Ok(r) => r.deep_size_of_children(context),
             Err(e) => e.deep_size_of_children(context),
         }
     }
 }
-
 
 macro_rules! deep_size_array {
     ($num:expr) => {
