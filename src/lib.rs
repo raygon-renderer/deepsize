@@ -132,10 +132,7 @@ pub trait DeepSizeOf {
     fn deep_size_of_children(&self, context: &mut Context) -> usize;
 }
 
-#[cfg(not(feature = "std"))]
-use alloc::collections::BTreeSet as GenericSet;
-#[cfg(feature = "std")]
-use std::collections::HashSet as GenericSet;
+use hashbrown::HashSet as GenericSet;
 
 /// The context of which references have already been seen.
 /// This should only be used in the implementation of the
