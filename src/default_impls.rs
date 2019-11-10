@@ -138,6 +138,13 @@ deep_size_array!(29);
 deep_size_array!(30);
 deep_size_array!(31);
 deep_size_array!(32);
+deep_size_array!(48);
+deep_size_array!(64);
+deep_size_array!(96);
+deep_size_array!(128);
+deep_size_array!(256);
+deep_size_array!(512);
+deep_size_array!(1024);
 
 macro_rules! deep_size_tuple {
     ($(($n:tt, $T:ident)),+ ) => {
