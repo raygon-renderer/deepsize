@@ -14,6 +14,7 @@ mod slotmap_impl {
         V: DeepSizeOf + slotmap::Slottable,
     {
         #[inline]
+        #[rustfmt::skip]
         fn deep_size_of_children(&self, context: &mut Context) -> usize {
             self.iter()
                 .fold(0, |sum, (key, val)| {
@@ -46,6 +47,23 @@ mod smallvec_impl {
                     self.capacity() + self.inline_size()
                 }
                 + (size_of::<usize>() * 2)
+        }
+    }
+}
+
+#[cfg(feature = "arrayvec")]
+mod arrayvec_impl {
+    use super::*;
+
+    use arrayvec::{Array, ArrayVec};
+
+    impl<A: Array> DeepSizeOf for ArrayVec<A>
+    where
+        A::Item: DeepSizeOf,
+    {
+        #[inline]
+        fn deep_size_of_children(&self, context: &mut Context) -> usize {
+            self.iter().fold(0, |sum, item| sum + item.deep_size_of_children(context))
         }
     }
 }
