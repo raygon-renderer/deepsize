@@ -106,6 +106,7 @@ macro_rules! deep_size_array {
 }
 
 // Can't wait for const generics
+deep_size_array!(0);
 deep_size_array!(1);
 deep_size_array!(2);
 deep_size_array!(3);
