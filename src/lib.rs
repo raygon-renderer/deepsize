@@ -176,32 +176,32 @@ impl Context {
 
     /// Adds an [`Arc`](std::sync::Arc) to the list of visited [`Arc`](std::sync::Arc)s
     #[inline]
-    fn add_arc<T>(&mut self, arc: &alloc::sync::Arc<T>) {
+    fn add_arc<T: ?Sized>(&mut self, arc: &alloc::sync::Arc<T>) {
         // Somewhat unsafe way of getting a pointer to the inner `ArcInner`
         // object without changing the count
-        let pointer: usize = unsafe { *(arc as *const alloc::sync::Arc<T> as *const usize) };
+        let pointer: usize = alloc::sync::Arc::as_ptr(arc) as *const u8 as usize;
         self.arcs.insert(pointer);
     }
     /// Checks if an [`Arc`](std::sync::Arc) is in the list visited [`Arc`](std::sync::Arc)s
     #[inline]
-    fn contains_arc<T>(&self, arc: &alloc::sync::Arc<T>) -> bool {
-        let pointer: usize = unsafe { *(arc as *const alloc::sync::Arc<T> as *const usize) };
+    fn contains_arc<T: ?Sized>(&self, arc: &alloc::sync::Arc<T>) -> bool {
+        let pointer: usize = alloc::sync::Arc::as_ptr(arc) as *const u8 as usize;
         self.arcs.contains(&pointer)
     }
 
     /// Adds an [`Rc`](std::rc::Rc) to the list of visited [`Rc`](std::rc::Rc)s
     #[inline]
-    fn add_rc<T>(&mut self, rc: &alloc::rc::Rc<T>) {
+    fn add_rc<T: ?Sized>(&mut self, rc: &alloc::rc::Rc<T>) {
         // Somewhat unsafe way of getting a pointer to the inner `RcBox`
         // object without changing the count
-        let pointer: usize = unsafe { *(rc as *const alloc::rc::Rc<T> as *const usize) };
+        let pointer: usize = alloc::rc::Rc::as_ptr(rc) as *const u8 as usize;
         self.rcs.insert(pointer);
     }
     /// Checks if an [`Rc`](std::rc::Rc) is in the list visited [`Rc`](std::rc::Rc)s
     /// Adds an [`Rc`](std::rc::Rc) to the list of visited [`Rc`](std::rc::Rc)s
     #[inline]
-    fn contains_rc<T>(&self, rc: &alloc::rc::Rc<T>) -> bool {
-        let pointer: usize = unsafe { *(rc as *const alloc::rc::Rc<T> as *const usize) };
+    fn contains_rc<T: ?Sized>(&self, rc: &alloc::rc::Rc<T>) -> bool {
+        let pointer: usize = alloc::rc::Rc::as_ptr(rc) as *const u8 as usize;
         self.rcs.contains(&pointer)
     }
 
@@ -375,6 +375,22 @@ where
     }
 }
 
+impl<T> DeepSizeOf for alloc::sync::Arc<[T]>
+where
+    T: DeepSizeOf,
+{
+    fn deep_size_of_children(&self, context: &mut Context) -> usize {
+        if context.contains_arc(self) {
+            0
+        } else {
+            context.add_arc(self);
+            let val: &[T] = &*self;
+            // Size of the Arc, size of the value, size of the allocations of the value
+            size_of_val(val) + val.deep_size_of_children(context)
+        }
+    }
+}
+
 impl<T> DeepSizeOf for alloc::sync::Arc<T>
 where
     T: DeepSizeOf,
@@ -387,6 +403,22 @@ where
             context.add_arc(self);
             let val: &T = &*self;
             // Size of the Arc, size of the value, size of the allocations of the value
+            size_of_val(val) + val.deep_size_of_children(context)
+        }
+    }
+}
+
+impl<T> DeepSizeOf for alloc::rc::Rc<[T]>
+where
+    T: DeepSizeOf,
+{
+    #[inline]
+    fn deep_size_of_children(&self, context: &mut Context) -> usize {
+        if context.contains_rc(self) {
+            0
+        } else {
+            context.add_rc(self);
+            let val: &[T] = &*self;
             size_of_val(val) + val.deep_size_of_children(context)
         }
     }
