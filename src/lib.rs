@@ -157,11 +157,11 @@ use hashbrown::HashSet as GenericSet;
 #[derive(Debug)]
 pub struct Context {
     /// A set of all [`Arcs`](std::sync::Arc) that have already been counted
-    arcs: GenericSet<usize>,
+    pub arcs: GenericSet<usize>,
     /// A set of all [`Rcs`](std::sync::Arc) that have already been counted
-    rcs: GenericSet<usize>,
+    pub rcs: GenericSet<usize>,
     /// A set of all normal references that have already been counted
-    refs: GenericSet<usize>,
+    pub refs: GenericSet<usize>,
 }
 
 impl Context {
@@ -176,7 +176,7 @@ impl Context {
 
     /// Adds an [`Arc`](std::sync::Arc) to the list of visited [`Arc`](std::sync::Arc)s
     #[inline]
-    fn add_arc<T: ?Sized>(&mut self, arc: &alloc::sync::Arc<T>) {
+    pub fn add_arc<T: ?Sized>(&mut self, arc: &alloc::sync::Arc<T>) {
         // Somewhat unsafe way of getting a pointer to the inner `ArcInner`
         // object without changing the count
         let pointer: usize = alloc::sync::Arc::as_ptr(arc) as *const u8 as usize;
@@ -184,14 +184,14 @@ impl Context {
     }
     /// Checks if an [`Arc`](std::sync::Arc) is in the list visited [`Arc`](std::sync::Arc)s
     #[inline]
-    fn contains_arc<T: ?Sized>(&self, arc: &alloc::sync::Arc<T>) -> bool {
+    pub fn contains_arc<T: ?Sized>(&self, arc: &alloc::sync::Arc<T>) -> bool {
         let pointer: usize = alloc::sync::Arc::as_ptr(arc) as *const u8 as usize;
         self.arcs.contains(&pointer)
     }
 
     /// Adds an [`Rc`](std::rc::Rc) to the list of visited [`Rc`](std::rc::Rc)s
     #[inline]
-    fn add_rc<T: ?Sized>(&mut self, rc: &alloc::rc::Rc<T>) {
+    pub fn add_rc<T: ?Sized>(&mut self, rc: &alloc::rc::Rc<T>) {
         // Somewhat unsafe way of getting a pointer to the inner `RcBox`
         // object without changing the count
         let pointer: usize = alloc::rc::Rc::as_ptr(rc) as *const u8 as usize;
@@ -200,7 +200,7 @@ impl Context {
     /// Checks if an [`Rc`](std::rc::Rc) is in the list visited [`Rc`](std::rc::Rc)s
     /// Adds an [`Rc`](std::rc::Rc) to the list of visited [`Rc`](std::rc::Rc)s
     #[inline]
-    fn contains_rc<T: ?Sized>(&self, rc: &alloc::rc::Rc<T>) -> bool {
+    pub fn contains_rc<T: ?Sized>(&self, rc: &alloc::rc::Rc<T>) -> bool {
         let pointer: usize = alloc::rc::Rc::as_ptr(rc) as *const u8 as usize;
         self.rcs.contains(&pointer)
     }
@@ -208,13 +208,13 @@ impl Context {
     /// Adds a [`reference`](std::reference) to the list of visited [`reference`](std::reference)s
     /// Adds an [`Rc`](std::rc::Rc) to the list of visited [`Rc`](std::rc::Rc)s
     #[inline]
-    fn add_ref<T>(&mut self, reference: &T) {
+    pub fn add_ref<T>(&mut self, reference: &T) {
         let pointer: usize = reference as *const _ as usize;
         self.refs.insert(pointer);
     }
     /// Checks if a [`reference`](std::reference) is in the list of visited [`reference`](std::reference)s
     #[inline]
-    fn contains_ref<T>(&self, reference: &T) -> bool {
+    pub fn contains_ref<T>(&self, reference: &T) -> bool {
         let pointer: usize = reference as *const _ as usize;
         self.refs.contains(&pointer)
     }
